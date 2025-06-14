@@ -43,5 +43,4 @@ app.use('/api', routes);
 // Menjalankan server
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
-  console.log(`File yang diunggah dapat diakses melalui http://${HOST}:${PORT}/uploads/<nama-file>`);
 });

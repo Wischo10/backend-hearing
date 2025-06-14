@@ -1,9 +1,6 @@
 // src/handlers/laporanHandler.js
 
-// --- PERBAIKAN UTAMA DI SINI ---
-// Mengimpor semua fungsi yang dibutuhkan, termasuk middleware, dari laporanHelper.js
 const {
-    uploadFotoKegiatanMiddleware,
     validateLaporanInput,
     validateId,
     createLaporan,
@@ -11,56 +8,58 @@ const {
     getLaporanById,
     updateLaporan,
     deleteLaporan,
-    getFileUrl // Pastikan getFileUrl juga diimpor jika dibutuhkan
+    getFileUrl
 } = require('../helpers/laporanHelper');
-
-const multer = require('multer');
 const fs = require('fs');
+const path = require('path'); // Impor path untuk keamanan
 
 /**
  * Membuat laporan kegiatan baru.
  */
-const createLaporanHandler = (req, res) => {
-    // Middleware upload dijalankan terlebih dahulu
-    uploadFotoKegiatanMiddleware(req, res, async (err) => {
-        if (err instanceof multer.MulterError) {
-            return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
-        } else if (err) {
-            return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
-        }
-
+const createLaporanHandler = async (req, res) => {
+    // Middleware upload sudah dijalankan oleh routes.js.
+    // Kita bisa langsung akses req.file dan req.body.
+    try {
         const { deskripsi } = req.body;
         const userId = req.auth?.credentials?.user?.id;
 
-        // Validasi autentikasi
+        // 1. Validasi Autentikasi
         if (!userId) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            // Jika tidak terautentikasi, hapus file yang mungkin sudah terlanjur diupload
+            if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
             return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
         }
 
-        // Buat URL lengkap untuk file yang diunggah
-        const fotoKegiatanUrl = req.file ? getFileUrl(req, req.file.filename) : null;
-
-        // Validasi input
-        const validation = validateLaporanInput(deskripsi, fotoKegiatanUrl);
-        if (!validation.status) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
-            return res.status(400).json({ status: false, message: validation.message });
+        // 2. Validasi Input (File dan Deskripsi)
+        if (!req.file) {
+            return res.status(400).json({ status: false, message: 'Foto kegiatan harus diupload.' });
+        }
+        if (!deskripsi || deskripsi.trim() === '') {
+            fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
+            return res.status(400).json({ status: false, message: 'Deskripsi tidak boleh kosong.' });
         }
 
-        try {
-            const newLaporan = await createLaporan(userId, deskripsi, fotoKegiatanUrl);
-            return res.status(201).json({
-                status: true,
-                message: 'Laporan kegiatan berhasil dibuat!',
-                data: newLaporan,
-            });
-        } catch (error) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file after DB error:', unlinkErr); });
-            console.error('Error creating laporan:', error);
-            return res.status(500).json({ status: false, message: 'Internal Server Error' });
-        }
-    });
+        // 3. Buat URL dan simpan ke database
+        const fotoKegiatanUrl = getFileUrl(req, req.file.filename);
+        const newLaporan = await createLaporan({ // Mengirim sebagai objek
+            userId,
+            deskripsi,
+            fotoKegiatanUrl,
+        });
+
+        // 4. Kirim respons sukses
+        return res.status(201).json({
+            status: true,
+            message: 'Laporan kegiatan berhasil dibuat!',
+            data: newLaporan,
+        });
+
+    } catch (error) {
+        // Jika terjadi error saat proses, hapus file yang sudah terupload
+        if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
+        console.error('Error creating laporan:', error);
+        return res.status(500).json({ status: false, message: 'Internal Server Error' });
+    }
 };
 
 /**
@@ -114,55 +113,54 @@ const getLaporanByIdHandler = async (req, res) => {
 /**
  * Memperbarui laporan kegiatan.
  */
-const updateLaporanHandler = (req, res) => {
-    uploadFotoKegiatanMiddleware(req, res, async (err) => {
-        if (err instanceof multer.MulterError) {
-            return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
-        } else if (err) {
-            return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
-        }
-
+const updateLaporanHandler = async (req, res) => {
+    // Sama seperti create, middleware sudah dijalankan oleh routes.js
+    try {
         const { id } = req.params;
         const { deskripsi } = req.body;
         const userId = req.auth?.credentials?.user?.id;
 
+        // Validasi Autentikasi dan ID
         if (!userId) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
             return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
         }
-
         const parsedId = validateId(id);
         if (parsedId === null) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
             return res.status(400).json({ status: false, message: 'ID laporan tidak valid.' });
         }
 
+        // Foto bersifat opsional saat update
         const fotoKegiatanUrl = req.file ? getFileUrl(req, req.file.filename) : null;
         
-        // Deskripsi harus ada, tapi foto tidak wajib saat update
+        // Deskripsi wajib ada
         if (!deskripsi || deskripsi.trim() === '') {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
             return res.status(400).json({ status: false, message: "Deskripsi tidak boleh kosong." });
         }
 
-        try {
-            const updatedLaporan = await updateLaporan(parsedId, userId, deskripsi, fotoKegiatanUrl);
-            return res.status(200).json({
-                status: true,
-                message: 'Laporan kegiatan berhasil diperbarui!',
-                data: updatedLaporan,
-            });
-        } catch (error) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file after DB error:', unlinkErr); });
-            console.error('Error updating laporan:', error);
-            if (error.message.includes('izin')) {
-                return res.status(403).json({ status: false, message: error.message });
-            } else if (error.message.includes('tidak ditemukan')) {
-                return res.status(404).json({ status: false, message: error.message });
-            }
-            return res.status(500).json({ status: false, message: 'Internal Server Error' });
+        const updatedLaporan = await updateLaporan(parsedId, {
+            userId,
+            deskripsi,
+            fotoKegiatanUrl, // Kirim null jika tidak ada foto baru
+        });
+
+        return res.status(200).json({
+            status: true,
+            message: 'Laporan kegiatan berhasil diperbarui!',
+            data: updatedLaporan,
+        });
+    } catch (error) {
+        if (req.file) fs.unlink(req.file.path, (e) => e && console.error("Gagal hapus file:", e));
+        console.error('Error updating laporan:', error);
+        if (error.message.includes('izin')) {
+            return res.status(403).json({ status: false, message: error.message });
+        } else if (error.message.includes('tidak ditemukan')) {
+            return res.status(404).json({ status: false, message: error.message });
         }
-    });
+        return res.status(500).json({ status: false, message: 'Internal Server Error' });
+    }
 };
 
 /**

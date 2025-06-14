@@ -1,13 +1,19 @@
+// src/helpers/authHelper.js
+
 // Mengimpor library yang dibutuhkan
-const jwt = require('jsonwebtoken'); // digunakan untuk membuat token JWT
-const bcrypt = require('bcrypt'); // digunakan untuk enkripsi dan pembandingan password
-require('dotenv').config(); // untuk memuat variabel dari file .env
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+require('dotenv').config();
 
-// Asumsi: Anda akan mengimpor atau mendefinisikan instance Prisma client di sini
-const { PrismaClient } = require('../generated/prisma'); // Import PrismaClient
-const prisma = new PrismaClient(); // Inisialisasi Prisma Client
+// =================================================================
+// IMPORTS & SETUP
+// =================================================================
+// PERBAIKAN: Impor instance Prisma tunggal dari file terpusat.
+const prisma = require('../lib/prisma');
 
-// Fungsi untuk interaksi database
+// =================================================================
+// FUNGSI DATABASE
+// =================================================================
 const getUserByUsername = async (username) => {
     return prisma.user.findUnique({ where: { username } });
 };
@@ -21,11 +27,14 @@ const createUser = async (username, email, hashedPassword) => {
 };
 
 const getUserById = async (id) => {
+    // Pastikan ID yang diterima valid sebelum query
+    if (!id) return null;
     return prisma.user.findUnique({ where: { id } });
 };
 
-
-// Fungsi untuk memverifikasi input registrasi
+// =================================================================
+// FUNGSI VERIFIKASI
+// =================================================================
 const verifyRegisterInput = async (username, email) => {
     var verification = { message: "Successful Validation", status: true };
 
@@ -46,10 +55,8 @@ const verifyRegisterInput = async (username, email) => {
     return verification;
 }
 
-// Fungsi untuk memverifikasi login
 const verifyLoginCredential = async (email, password) => {
     var verification = { message: "Wrong email or password", status: false };
-
     const account = await getUserByEmail(email);
     if (!account) {
         return verification;
@@ -67,33 +74,28 @@ const verifyLoginCredential = async (email, password) => {
     return verification;
 }
 
-// Fungsi untuk membuat access token (berlaku 5 menit)
+// =================================================================
+// FUNGSI TOKEN
+// =================================================================
 const generateAccessToken = (id, email, username) => {
     return jwt.sign(
-        {
-            id: id,
-            email: email,
-            username: username,
-            type: 'access'
-        },
+        { id, email, username, type: 'access' },
         process.env.JWT_SECRET_KEY,
         { expiresIn: '5m', algorithm: 'HS512' }
     );
 }
 
-// Fungsi untuk membuat refresh token (berlaku 7 hari)
 const generateRefreshToken = (id) => {
     return jwt.sign(
-        {
-            id: id,
-            type: 'refresh'
-        },
+        { id, type: 'refresh' },
         process.env.JWT_SECRET_KEY,
         { expiresIn: '7d', algorithm: 'HS512' }
     );
 }
 
-// Custom middleware untuk validasi JWT
+// =================================================================
+// MIDDLEWARE AUTENTIKASI
+// =================================================================
 const authenticateJWT = (requireRefresh = false) => {
     return async (req, res, next) => {
         const authHeader = req.headers.authorization;
@@ -106,29 +108,27 @@ const authenticateJWT = (requireRefresh = false) => {
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
             const user = await getUserById(decoded.id);
             if (!user) {
                 return res.status(401).json({ status: false, message: 'Invalid user' });
             }
 
-            // Cek apakah ini token refresh (hanya jika diminta)
             if (requireRefresh && decoded.type !== 'refresh') {
                 return res.status(401).json({ status: false, message: 'Wrong token type' });
             }
 
-            // Simpan informasi pengguna yang terdekode di req.auth
             req.auth = { credentials: { user: decoded } };
             next();
         } catch (err) {
-            console.error('JWT verification error:', err.message); // Log error untuk debugging
+            console.error('JWT verification error:', err.message);
             return res.status(401).json({ status: false, message: 'Invalid or expired token' });
         }
     };
 };
 
-
-// Mengekspor semua fungsi agar bisa digunakan di file lain
+// =================================================================
+// EKSPOR
+// =================================================================
 module.exports = {
     verifyRegisterInput,
     verifyLoginCredential,
@@ -136,5 +136,5 @@ module.exports = {
     generateRefreshToken,
     createUser,
     getUserById,
-    authenticateJWT, // Tambahkan authenticateJWT di sini
+    authenticateJWT,
 };

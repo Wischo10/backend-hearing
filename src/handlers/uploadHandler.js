@@ -3,7 +3,7 @@
 // 1. Impor `uploadSuratMiddleware` (nama yang benar) dan `getFileUrl`
 const { uploadSuratMiddleware, getFileUrl } = require('../helpers/uploadHelper');
 // Pastikan path ke Prisma Client Anda sudah benar
-const { PrismaClient } = require('@prisma/client'); // Path standar, sesuaikan jika perlu
+const { PrismaClient } = require('../generated/prisma'); // Path standar, sesuaikan jika perlu
 const fs = require('fs');
 const multer = require('multer');
 

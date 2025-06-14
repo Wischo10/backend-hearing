@@ -1,5 +1,4 @@
-const { PrismaClient } = require('../generated/prisma'); // Pastikan path ini benar
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer'); // 1. Impor multer
