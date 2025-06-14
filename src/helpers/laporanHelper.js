@@ -1,10 +1,60 @@
-// src/helpers/laporanHelper.js
-
 const { PrismaClient } = require('../generated/prisma'); // Pastikan path ini benar
 const prisma = new PrismaClient();
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer'); // 1. Impor multer
 const { uploadDir } = require('./uploadHelper'); // Import uploadDir dari uploadHelper untuk path foto
+
+// --- Middleware untuk Upload Foto Kegiatan ---
+
+/**
+ * Filter file khusus untuk memastikan hanya file gambar yang diterima.
+ */
+const imageFileFilter = (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true); // Terima file jika tipenya adalah gambar
+    } else {
+        // Tolak file jika bukan gambar
+        cb(new Error('Format file tidak didukung. Hanya file gambar (JPEG, PNG, GIF) yang diizinkan.'), false);
+    }
+};
+
+// Konfigurasi penyimpanan Multer untuk foto kegiatan
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir); // Gunakan direktori yang sama dari uploadHelper
+    },
+    filename: function (req, file, cb) {
+        const timestamp = Date.now();
+        const ext = path.extname(file.originalname);
+        cb(null, `fotoKegiatan-${timestamp}${ext}`); // Nama file spesifik untuk foto kegiatan
+    }
+});
+
+// Buat middleware multer untuk upload foto kegiatan
+const uploadFotoKegiatanMiddleware = multer({
+    storage: storage,
+    fileFilter: imageFileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 } // Batas ukuran file 5MB
+}).single('fotoKegiatan'); // Mengharapkan field dengan nama 'fotoKegiatan'
+
+// --- Fungsi Bantuan untuk URL ---
+
+/**
+ * Membuat URL lengkap yang dapat diakses publik untuk file yang diunggah.
+ * @param {object} req - Objek request dari Express.
+ * @param {string} filename - Nama file yang disimpan di server.
+ * @returns {string} URL lengkap ke file.
+ */
+const getFileUrl = (req, filename) => {
+    if (!filename) {
+        return null;
+    }
+    // '/uploads/' adalah path publik yang diatur di app.js
+    return `${req.protocol}://${req.get('host')}/uploads/${filename}`;
+};
+
 
 // --- Fungsi Validasi ---
 
@@ -13,7 +63,7 @@ const { uploadDir } = require('./uploadHelper'); // Import uploadDir dari upload
  * @param {string | number} id - ID yang akan divalidasi.
  * @returns {number | null} ID yang valid (integer) atau null jika tidak valid.
  */
-const validateId = (id) => { // <--- Pastikan nama fungsi ini adalah 'validateId'
+const validateId = (id) => {
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
         return null;
@@ -32,11 +82,6 @@ const validateLaporanInput = (deskripsi, fotoKegiatanPath) => {
     if (!deskripsi || deskripsi.trim() === '') {
         return { status: false, message: 'Deskripsi kegiatan tidak boleh kosong.' };
     }
-    // Perbaikan: Foto kegiatan bisa opsional saat update.
-    // Jika fotoKegiatanPath tidak ada (saat update), dan deskripsi ada, itu valid.
-    // Jika ini untuk create, maka fotoKegiatanPath harus ada.
-    // Validasi ini lebih baik disesuaikan per handler jika ada perbedaan aturan.
-    // Untuk saat ini, asumsikan foto selalu wajib untuk create, dan opsional untuk update jika fotoKegiatanPath null.
     if (!fotoKegiatanPath || fotoKegiatanPath.trim() === '') {
         return { status: false, message: 'Foto kegiatan harus diupload.' };
     }
@@ -112,7 +157,6 @@ const updateLaporan = async (laporanId, userId, deskripsi, fotoKegiatanUrl = nul
         throw new Error('Anda tidak memiliki izin untuk memperbarui laporan ini.');
     }
 
-    // Jika ada foto baru, hapus foto lama (opsional tapi disarankan)
     if (fotoKegiatanUrl && existingLaporan.fotoKegiatanUrl) {
         const oldFilePath = path.join(uploadDir, path.basename(existingLaporan.fotoKegiatanUrl));
         if (fs.existsSync(oldFilePath)) {
@@ -126,7 +170,7 @@ const updateLaporan = async (laporanId, userId, deskripsi, fotoKegiatanUrl = nul
         where: { id: laporanId },
         data: {
             deskripsi,
-            fotoKegiatanUrl: fotoKegiatanUrl || existingLaporan.fotoKegiatanUrl, // Gunakan yang baru atau yang lama
+            fotoKegiatanUrl: fotoKegiatanUrl || existingLaporan.fotoKegiatanUrl,
         },
     });
 };
@@ -151,7 +195,6 @@ const deleteLaporan = async (laporanId, userId) => {
         throw new Error('Anda tidak memiliki izin untuk menghapus laporan ini.');
     }
 
-    // Hapus file foto terkait (opsional tapi disarankan)
     if (existingLaporan.fotoKegiatanUrl) {
         const filePathToRemove = path.join(uploadDir, path.basename(existingLaporan.fotoKegiatanUrl));
         if (fs.existsSync(filePathToRemove)) {
@@ -166,9 +209,12 @@ const deleteLaporan = async (laporanId, userId) => {
     });
 };
 
+// Ekspor middleware baru bersama dengan fungsi lainnya
 module.exports = {
+    uploadFotoKegiatanMiddleware,
+    getFileUrl, // <-- Ekspor fungsi baru
     validateLaporanInput,
-    validateId, // <--- TAMBAHKAN validateId ke exports
+    validateId,
     createLaporan,
     getAllLaporan,
     getLaporanById,

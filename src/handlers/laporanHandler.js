@@ -1,61 +1,70 @@
 // src/handlers/laporanHandler.js
 
-const laporanHelpers = require('../helpers/laporanHelper');
-const { uploadFotoKegiatanMiddleware } = require('../helpers/uploadHelper');
+// --- PERBAIKAN UTAMA DI SINI ---
+// Mengimpor semua fungsi yang dibutuhkan, termasuk middleware, dari laporanHelper.js
+const {
+    uploadFotoKegiatanMiddleware,
+    validateLaporanInput,
+    validateId,
+    createLaporan,
+    getAllLaporan,
+    getLaporanById,
+    updateLaporan,
+    deleteLaporan,
+    getFileUrl // Pastikan getFileUrl juga diimpor jika dibutuhkan
+} = require('../helpers/laporanHelper');
+
 const multer = require('multer');
 const fs = require('fs');
 
 /**
  * Membuat laporan kegiatan baru.
- * Membutuhkan JWT (access token) untuk otentikasi pengguna.
- * Body: { deskripsi: string }
- * File: fotoKegiatan (field name di form-data)
  */
 const createLaporanHandler = (req, res) => {
+    // Middleware upload dijalankan terlebih dahulu
     uploadFotoKegiatanMiddleware(req, res, async (err) => {
         if (err instanceof multer.MulterError) {
-            console.error('Multer error:', err);
             return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
         } else if (err) {
-            console.error('Error during file upload:', err);
             return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
         }
 
         const { deskripsi } = req.body;
         const userId = req.auth?.credentials?.user?.id;
 
+        // Validasi autentikasi
         if (!userId) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file due to missing user ID:', unlinkErr); });
-            return res.status(401).json({ status: false, message: 'Autentikasi diperlukan atau ID pengguna tidak ditemukan.' });
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
         }
 
-        const fotoKegiatanUrl = req.file ? req.file.path : null;
+        // Buat URL lengkap untuk file yang diunggah
+        const fotoKegiatanUrl = req.file ? getFileUrl(req, req.file.filename) : null;
 
-        const validation = laporanHelpers.validateLaporanInput(deskripsi, fotoKegiatanUrl);
+        // Validasi input
+        const validation = validateLaporanInput(deskripsi, fotoKegiatanUrl);
         if (!validation.status) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file:', unlinkErr); });
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
             return res.status(400).json({ status: false, message: validation.message });
         }
 
         try {
-            const newLaporan = await laporanHelpers.createLaporan(userId, deskripsi, fotoKegiatanUrl);
+            const newLaporan = await createLaporan(userId, deskripsi, fotoKegiatanUrl);
             return res.status(201).json({
                 status: true,
                 message: 'Laporan kegiatan berhasil dibuat!',
                 data: newLaporan,
             });
         } catch (error) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file after DB error:', unlinkErr); });
-            console.error('Error creating laporan kegiatan:', error);
-            return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file after DB error:', unlinkErr); });
+            console.error('Error creating laporan:', error);
+            return res.status(500).json({ status: false, message: 'Internal Server Error' });
         }
     });
 };
 
 /**
- * Mendapatkan daftar semua laporan kegiatan.
- * Opsional: Mengambil laporan untuk user tertentu jika ada query param 'my' = 'true'.
- * Membutuhkan JWT (access token) untuk otentikasi.
+ * Mendapatkan semua laporan kegiatan.
  */
 const getAllLaporanHandler = async (req, res) => {
     try {
@@ -63,34 +72,32 @@ const getAllLaporanHandler = async (req, res) => {
         if (req.query.my === 'true') {
             userId = req.auth?.credentials?.user?.id;
             if (!userId) {
-                return res.status(401).json({ status: false, message: 'Autentikasi diperlukan untuk melihat laporan Anda.' });
+                return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
             }
         }
-
-        const laporans = await laporanHelpers.getAllLaporan(userId);
+        const laporans = await getAllLaporan(userId);
         return res.status(200).json({
             status: true,
             data: laporans,
         });
     } catch (error) {
-        console.error('Error fetching laporan kegiatan:', error);
-        return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
+        console.error('Error fetching laporan:', error);
+        return res.status(500).json({ status: false, message: 'Internal Server Error' });
     }
 };
 
 /**
- * Mendapatkan detail laporan kegiatan berdasarkan ID.
- * Membutuhkan JWT (access token) untuk otentikasi.
+ * Mendapatkan laporan berdasarkan ID.
  */
 const getLaporanByIdHandler = async (req, res) => {
     const { id } = req.params;
-    const parsedId = laporanHelpers.validateId(id); // <--- PERBAIKAN DI SINI! (validateSubmissionId -> validateId)
+    const parsedId = validateId(id);
     if (parsedId === null) {
         return res.status(400).json({ status: false, message: 'ID laporan tidak valid.' });
     }
 
     try {
-        const laporan = await laporanHelpers.getLaporanById(parsedId);
+        const laporan = await getLaporanById(parsedId);
         if (!laporan) {
             return res.status(404).json({ status: false, message: 'Laporan tidak ditemukan.' });
         }
@@ -100,22 +107,18 @@ const getLaporanByIdHandler = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching laporan by ID:', error);
-        return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
+        return res.status(500).json({ status: false, message: 'Internal Server Error' });
     }
 };
 
 /**
  * Memperbarui laporan kegiatan.
- * Membutuhkan JWT (access token) untuk otentikasi dan otorisasi.
- * Body: { deskripsi: string, (optional) fotoKegiatan (file) }
  */
 const updateLaporanHandler = (req, res) => {
     uploadFotoKegiatanMiddleware(req, res, async (err) => {
         if (err instanceof multer.MulterError) {
-            console.error('Multer error:', err);
             return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
         } else if (err) {
-            console.error('Error during file upload:', err);
             return res.status(400).json({ status: false, message: `Upload failed: ${err.message}` });
         }
 
@@ -124,75 +127,74 @@ const updateLaporanHandler = (req, res) => {
         const userId = req.auth?.credentials?.user?.id;
 
         if (!userId) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file due to missing user ID:', unlinkErr); });
-            return res.status(401).json({ status: false, message: 'Autentikasi diperlukan atau ID pengguna tidak ditemukan.' });
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
         }
 
-        const parsedId = laporanHelpers.validateId(id); // <--- PERBAIKAN DI SINI! (validateSubmissionId -> validateId)
+        const parsedId = validateId(id);
         if (parsedId === null) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file:', unlinkErr); });
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
             return res.status(400).json({ status: false, message: 'ID laporan tidak valid.' });
         }
 
-        const fotoKegiatanUrl = req.file ? req.file.path : null;
-
-        const validation = laporanHelpers.validateLaporanInput(deskripsi, fotoKegiatanUrl || 'dummy');
-        if (!validation.status && !fotoKegiatanUrl) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file:', unlinkErr); });
-            return res.status(400).json({ status: false, message: validation.message });
+        const fotoKegiatanUrl = req.file ? getFileUrl(req, req.file.filename) : null;
+        
+        // Deskripsi harus ada, tapi foto tidak wajib saat update
+        if (!deskripsi || deskripsi.trim() === '') {
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file:', unlinkErr); });
+            return res.status(400).json({ status: false, message: "Deskripsi tidak boleh kosong." });
         }
 
         try {
-            const updatedLaporan = await laporanHelpers.updateLaporan(parsedId, userId, deskripsi, fotoKegiatanUrl);
+            const updatedLaporan = await updateLaporan(parsedId, userId, deskripsi, fotoKegiatanUrl);
             return res.status(200).json({
                 status: true,
                 message: 'Laporan kegiatan berhasil diperbarui!',
                 data: updatedLaporan,
             });
         } catch (error) {
-            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting uploaded file after DB error:', unlinkErr); });
-            console.error('Error updating laporan kegiatan:', error);
+            if (req.file) fs.unlink(req.file.path, (unlinkErr) => { if (unlinkErr) console.error('Error deleting file after DB error:', unlinkErr); });
+            console.error('Error updating laporan:', error);
             if (error.message.includes('izin')) {
                 return res.status(403).json({ status: false, message: error.message });
             } else if (error.message.includes('tidak ditemukan')) {
                 return res.status(404).json({ status: false, message: error.message });
             }
-            return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
+            return res.status(500).json({ status: false, message: 'Internal Server Error' });
         }
     });
 };
 
 /**
  * Menghapus laporan kegiatan.
- * Membutuhkan JWT (access token) untuk otentikasi dan otorisasi.
  */
 const deleteLaporanHandler = async (req, res) => {
     const { id } = req.params;
     const userId = req.auth?.credentials?.user?.id;
 
     if (!userId) {
-        return res.status(401).json({ status: false, message: 'Autentikasi diperlukan atau ID pengguna tidak ditemukan.' });
+        return res.status(401).json({ status: false, message: 'Autentikasi diperlukan.' });
     }
 
-    const parsedId = laporanHelpers.validateId(id); // <--- PERBAIKAN DI SINI! (validateSubmissionId -> validateId)
+    const parsedId = validateId(id);
     if (parsedId === null) {
         return res.status(400).json({ status: false, message: 'ID laporan tidak valid.' });
     }
 
     try {
-        await laporanHelpers.deleteLaporan(parsedId, userId);
+        await deleteLaporan(parsedId, userId);
         return res.status(200).json({
             status: true,
             message: 'Laporan kegiatan berhasil dihapus!',
         });
     } catch (error) {
-        console.error('Error deleting laporan kegiatan:', error);
+        console.error('Error deleting laporan:', error);
         if (error.message.includes('izin')) {
             return res.status(403).json({ status: false, message: error.message });
         } else if (error.message.includes('tidak ditemukan')) {
             return res.status(404).json({ status: false, message: error.message });
         }
-        return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
+        return res.status(500).json({ status: false, message: 'Internal Server Error' });
     }
 };
 

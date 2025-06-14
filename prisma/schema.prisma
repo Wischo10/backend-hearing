@@ -12,6 +12,7 @@ generator client { // <-- Pastikan HANYA ada satu blok generator client ini
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 
