@@ -141,11 +141,12 @@ exports.Prisma.UploadedDocumentScalarFieldEnum = {
 
 exports.Prisma.LaporanKegiatanScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
   deskripsi: 'deskripsi',
   fotoKegiatanUrl: 'fotoKegiatanUrl',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  userId: 'userId',
+  submissionId: 'submissionId'
 };
 
 exports.Prisma.SortOrder = {

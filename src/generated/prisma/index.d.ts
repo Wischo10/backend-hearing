@@ -2422,6 +2422,7 @@ export namespace Prisma {
     uploadDate?: boolean
     status?: boolean
     reviewedAt?: boolean
+    laporanKegiatan?: boolean | UploadedDocument$laporanKegiatanArgs<ExtArgs>
   }, ExtArgs["result"]["uploadedDocument"]>
 
   export type UploadedDocumentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2461,10 +2462,17 @@ export namespace Prisma {
   }
 
   export type UploadedDocumentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "namaPengirim" | "fileName" | "filePath" | "fileMimeType" | "fileSize" | "uploadDate" | "status" | "reviewedAt", ExtArgs["result"]["uploadedDocument"]>
+  export type UploadedDocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    laporanKegiatan?: boolean | UploadedDocument$laporanKegiatanArgs<ExtArgs>
+  }
+  export type UploadedDocumentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UploadedDocumentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UploadedDocumentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "UploadedDocument"
-    objects: {}
+    objects: {
+      laporanKegiatan: Prisma.$LaporanKegiatanPayload<ExtArgs> | null
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       namaPengirim: string
@@ -2869,6 +2877,7 @@ export namespace Prisma {
    */
   export interface Prisma__UploadedDocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    laporanKegiatan<T extends UploadedDocument$laporanKegiatanArgs<ExtArgs> = {}>(args?: Subset<T, UploadedDocument$laporanKegiatanArgs<ExtArgs>>): Prisma__LaporanKegiatanClient<$Result.GetResult<Prisma.$LaporanKegiatanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2924,6 +2933,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * Filter, which UploadedDocument to fetch.
      */
     where: UploadedDocumentWhereUniqueInput
@@ -2942,6 +2955,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * Filter, which UploadedDocument to fetch.
      */
     where: UploadedDocumentWhereUniqueInput
@@ -2959,6 +2976,10 @@ export namespace Prisma {
      * Omit specific fields from the UploadedDocument
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
     /**
      * Filter, which UploadedDocument to fetch.
      */
@@ -3008,6 +3029,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * Filter, which UploadedDocument to fetch.
      */
     where?: UploadedDocumentWhereInput
@@ -3056,6 +3081,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * Filter, which UploadedDocuments to fetch.
      */
     where?: UploadedDocumentWhereInput
@@ -3098,6 +3127,10 @@ export namespace Prisma {
      * Omit specific fields from the UploadedDocument
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
     /**
      * The data needed to create a UploadedDocument.
      */
@@ -3146,6 +3179,10 @@ export namespace Prisma {
      * Omit specific fields from the UploadedDocument
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
     /**
      * The data needed to update a UploadedDocument.
      */
@@ -3213,6 +3250,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * The filter to search for the UploadedDocument to update in case it exists.
      */
     where: UploadedDocumentWhereUniqueInput
@@ -3239,6 +3280,10 @@ export namespace Prisma {
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    /**
      * Filter which UploadedDocument to delete.
      */
     where: UploadedDocumentWhereUniqueInput
@@ -3259,6 +3304,25 @@ export namespace Prisma {
   }
 
   /**
+   * UploadedDocument.laporanKegiatan
+   */
+  export type UploadedDocument$laporanKegiatanArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LaporanKegiatan
+     */
+    select?: LaporanKegiatanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LaporanKegiatan
+     */
+    omit?: LaporanKegiatanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LaporanKegiatanInclude<ExtArgs> | null
+    where?: LaporanKegiatanWhereInput
+  }
+
+  /**
    * UploadedDocument without action
    */
   export type UploadedDocumentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3270,6 +3334,10 @@ export namespace Prisma {
      * Omit specific fields from the UploadedDocument
      */
     omit?: UploadedDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
   }
 
 
@@ -3288,38 +3356,43 @@ export namespace Prisma {
   export type LaporanKegiatanAvgAggregateOutputType = {
     id: number | null
     userId: number | null
+    submissionId: number | null
   }
 
   export type LaporanKegiatanSumAggregateOutputType = {
     id: number | null
     userId: number | null
+    submissionId: number | null
   }
 
   export type LaporanKegiatanMinAggregateOutputType = {
     id: number | null
-    userId: number | null
     deskripsi: string | null
     fotoKegiatanUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    userId: number | null
+    submissionId: number | null
   }
 
   export type LaporanKegiatanMaxAggregateOutputType = {
     id: number | null
-    userId: number | null
     deskripsi: string | null
     fotoKegiatanUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    userId: number | null
+    submissionId: number | null
   }
 
   export type LaporanKegiatanCountAggregateOutputType = {
     id: number
-    userId: number
     deskripsi: number
     fotoKegiatanUrl: number
     createdAt: number
     updatedAt: number
+    userId: number
+    submissionId: number
     _all: number
   }
 
@@ -3327,38 +3400,43 @@ export namespace Prisma {
   export type LaporanKegiatanAvgAggregateInputType = {
     id?: true
     userId?: true
+    submissionId?: true
   }
 
   export type LaporanKegiatanSumAggregateInputType = {
     id?: true
     userId?: true
+    submissionId?: true
   }
 
   export type LaporanKegiatanMinAggregateInputType = {
     id?: true
-    userId?: true
     deskripsi?: true
     fotoKegiatanUrl?: true
     createdAt?: true
     updatedAt?: true
+    userId?: true
+    submissionId?: true
   }
 
   export type LaporanKegiatanMaxAggregateInputType = {
     id?: true
-    userId?: true
     deskripsi?: true
     fotoKegiatanUrl?: true
     createdAt?: true
     updatedAt?: true
+    userId?: true
+    submissionId?: true
   }
 
   export type LaporanKegiatanCountAggregateInputType = {
     id?: true
-    userId?: true
     deskripsi?: true
     fotoKegiatanUrl?: true
     createdAt?: true
     updatedAt?: true
+    userId?: true
+    submissionId?: true
     _all?: true
   }
 
@@ -3450,11 +3528,12 @@ export namespace Prisma {
 
   export type LaporanKegiatanGroupByOutputType = {
     id: number
-    userId: number
     deskripsi: string
     fotoKegiatanUrl: string
     createdAt: Date
     updatedAt: Date
+    userId: number
+    submissionId: number | null
     _count: LaporanKegiatanCountAggregateOutputType | null
     _avg: LaporanKegiatanAvgAggregateOutputType | null
     _sum: LaporanKegiatanSumAggregateOutputType | null
@@ -3478,66 +3557,78 @@ export namespace Prisma {
 
   export type LaporanKegiatanSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    userId?: boolean
     deskripsi?: boolean
     fotoKegiatanUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    userId?: boolean
+    submissionId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }, ExtArgs["result"]["laporanKegiatan"]>
 
   export type LaporanKegiatanSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    userId?: boolean
     deskripsi?: boolean
     fotoKegiatanUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    userId?: boolean
+    submissionId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }, ExtArgs["result"]["laporanKegiatan"]>
 
   export type LaporanKegiatanSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    userId?: boolean
     deskripsi?: boolean
     fotoKegiatanUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    userId?: boolean
+    submissionId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }, ExtArgs["result"]["laporanKegiatan"]>
 
   export type LaporanKegiatanSelectScalar = {
     id?: boolean
-    userId?: boolean
     deskripsi?: boolean
     fotoKegiatanUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    userId?: boolean
+    submissionId?: boolean
   }
 
-  export type LaporanKegiatanOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "deskripsi" | "fotoKegiatanUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["laporanKegiatan"]>
+  export type LaporanKegiatanOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "deskripsi" | "fotoKegiatanUrl" | "createdAt" | "updatedAt" | "userId" | "submissionId", ExtArgs["result"]["laporanKegiatan"]>
   export type LaporanKegiatanInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }
   export type LaporanKegiatanIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }
   export type LaporanKegiatanIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    submission?: boolean | LaporanKegiatan$submissionArgs<ExtArgs>
   }
 
   export type $LaporanKegiatanPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "LaporanKegiatan"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      submission: Prisma.$UploadedDocumentPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
-      userId: number
       deskripsi: string
       fotoKegiatanUrl: string
       createdAt: Date
       updatedAt: Date
+      userId: number
+      submissionId: number | null
     }, ExtArgs["result"]["laporanKegiatan"]>
     composites: {}
   }
@@ -3933,6 +4024,7 @@ export namespace Prisma {
   export interface Prisma__LaporanKegiatanClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    submission<T extends LaporanKegiatan$submissionArgs<ExtArgs> = {}>(args?: Subset<T, LaporanKegiatan$submissionArgs<ExtArgs>>): Prisma__UploadedDocumentClient<$Result.GetResult<Prisma.$UploadedDocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3963,11 +4055,12 @@ export namespace Prisma {
    */
   interface LaporanKegiatanFieldRefs {
     readonly id: FieldRef<"LaporanKegiatan", 'Int'>
-    readonly userId: FieldRef<"LaporanKegiatan", 'Int'>
     readonly deskripsi: FieldRef<"LaporanKegiatan", 'String'>
     readonly fotoKegiatanUrl: FieldRef<"LaporanKegiatan", 'String'>
     readonly createdAt: FieldRef<"LaporanKegiatan", 'DateTime'>
     readonly updatedAt: FieldRef<"LaporanKegiatan", 'DateTime'>
+    readonly userId: FieldRef<"LaporanKegiatan", 'Int'>
+    readonly submissionId: FieldRef<"LaporanKegiatan", 'Int'>
   }
     
 
@@ -4364,6 +4457,25 @@ export namespace Prisma {
   }
 
   /**
+   * LaporanKegiatan.submission
+   */
+  export type LaporanKegiatan$submissionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UploadedDocument
+     */
+    select?: UploadedDocumentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UploadedDocument
+     */
+    omit?: UploadedDocumentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UploadedDocumentInclude<ExtArgs> | null
+    where?: UploadedDocumentWhereInput
+  }
+
+  /**
    * LaporanKegiatan without action
    */
   export type LaporanKegiatanDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4423,11 +4535,12 @@ export namespace Prisma {
 
   export const LaporanKegiatanScalarFieldEnum: {
     id: 'id',
-    userId: 'userId',
     deskripsi: 'deskripsi',
     fotoKegiatanUrl: 'fotoKegiatanUrl',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    userId: 'userId',
+    submissionId: 'submissionId'
   };
 
   export type LaporanKegiatanScalarFieldEnum = (typeof LaporanKegiatanScalarFieldEnum)[keyof typeof LaporanKegiatanScalarFieldEnum]
@@ -4586,6 +4699,7 @@ export namespace Prisma {
     uploadDate?: DateTimeFilter<"UploadedDocument"> | Date | string
     status?: StringFilter<"UploadedDocument"> | string
     reviewedAt?: DateTimeNullableFilter<"UploadedDocument"> | Date | string | null
+    laporanKegiatan?: XOR<LaporanKegiatanNullableScalarRelationFilter, LaporanKegiatanWhereInput> | null
   }
 
   export type UploadedDocumentOrderByWithRelationInput = {
@@ -4598,6 +4712,7 @@ export namespace Prisma {
     uploadDate?: SortOrder
     status?: SortOrder
     reviewedAt?: SortOrderInput | SortOrder
+    laporanKegiatan?: LaporanKegiatanOrderByWithRelationInput
   }
 
   export type UploadedDocumentWhereUniqueInput = Prisma.AtLeast<{
@@ -4613,6 +4728,7 @@ export namespace Prisma {
     uploadDate?: DateTimeFilter<"UploadedDocument"> | Date | string
     status?: StringFilter<"UploadedDocument"> | string
     reviewedAt?: DateTimeNullableFilter<"UploadedDocument"> | Date | string | null
+    laporanKegiatan?: XOR<LaporanKegiatanNullableScalarRelationFilter, LaporanKegiatanWhereInput> | null
   }, "id" | "filePath">
 
   export type UploadedDocumentOrderByWithAggregationInput = {
@@ -4652,44 +4768,51 @@ export namespace Prisma {
     OR?: LaporanKegiatanWhereInput[]
     NOT?: LaporanKegiatanWhereInput | LaporanKegiatanWhereInput[]
     id?: IntFilter<"LaporanKegiatan"> | number
-    userId?: IntFilter<"LaporanKegiatan"> | number
     deskripsi?: StringFilter<"LaporanKegiatan"> | string
     fotoKegiatanUrl?: StringFilter<"LaporanKegiatan"> | string
     createdAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
     updatedAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
+    userId?: IntFilter<"LaporanKegiatan"> | number
+    submissionId?: IntNullableFilter<"LaporanKegiatan"> | number | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    submission?: XOR<UploadedDocumentNullableScalarRelationFilter, UploadedDocumentWhereInput> | null
   }
 
   export type LaporanKegiatanOrderByWithRelationInput = {
     id?: SortOrder
-    userId?: SortOrder
     deskripsi?: SortOrder
     fotoKegiatanUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    userId?: SortOrder
+    submissionId?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
+    submission?: UploadedDocumentOrderByWithRelationInput
   }
 
   export type LaporanKegiatanWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    submissionId?: number
     AND?: LaporanKegiatanWhereInput | LaporanKegiatanWhereInput[]
     OR?: LaporanKegiatanWhereInput[]
     NOT?: LaporanKegiatanWhereInput | LaporanKegiatanWhereInput[]
-    userId?: IntFilter<"LaporanKegiatan"> | number
     deskripsi?: StringFilter<"LaporanKegiatan"> | string
     fotoKegiatanUrl?: StringFilter<"LaporanKegiatan"> | string
     createdAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
     updatedAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
+    userId?: IntFilter<"LaporanKegiatan"> | number
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id">
+    submission?: XOR<UploadedDocumentNullableScalarRelationFilter, UploadedDocumentWhereInput> | null
+  }, "id" | "submissionId">
 
   export type LaporanKegiatanOrderByWithAggregationInput = {
     id?: SortOrder
-    userId?: SortOrder
     deskripsi?: SortOrder
     fotoKegiatanUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    userId?: SortOrder
+    submissionId?: SortOrderInput | SortOrder
     _count?: LaporanKegiatanCountOrderByAggregateInput
     _avg?: LaporanKegiatanAvgOrderByAggregateInput
     _max?: LaporanKegiatanMaxOrderByAggregateInput
@@ -4702,11 +4825,12 @@ export namespace Prisma {
     OR?: LaporanKegiatanScalarWhereWithAggregatesInput[]
     NOT?: LaporanKegiatanScalarWhereWithAggregatesInput | LaporanKegiatanScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"LaporanKegiatan"> | number
-    userId?: IntWithAggregatesFilter<"LaporanKegiatan"> | number
     deskripsi?: StringWithAggregatesFilter<"LaporanKegiatan"> | string
     fotoKegiatanUrl?: StringWithAggregatesFilter<"LaporanKegiatan"> | string
     createdAt?: DateTimeWithAggregatesFilter<"LaporanKegiatan"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"LaporanKegiatan"> | Date | string
+    userId?: IntWithAggregatesFilter<"LaporanKegiatan"> | number
+    submissionId?: IntNullableWithAggregatesFilter<"LaporanKegiatan"> | number | null
   }
 
   export type UserCreateInput = {
@@ -4768,6 +4892,7 @@ export namespace Prisma {
     uploadDate?: Date | string
     status?: string
     reviewedAt?: Date | string | null
+    laporanKegiatan?: LaporanKegiatanCreateNestedOneWithoutSubmissionInput
   }
 
   export type UploadedDocumentUncheckedCreateInput = {
@@ -4780,6 +4905,7 @@ export namespace Prisma {
     uploadDate?: Date | string
     status?: string
     reviewedAt?: Date | string | null
+    laporanKegiatan?: LaporanKegiatanUncheckedCreateNestedOneWithoutSubmissionInput
   }
 
   export type UploadedDocumentUpdateInput = {
@@ -4791,6 +4917,7 @@ export namespace Prisma {
     uploadDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
     reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    laporanKegiatan?: LaporanKegiatanUpdateOneWithoutSubmissionNestedInput
   }
 
   export type UploadedDocumentUncheckedUpdateInput = {
@@ -4803,6 +4930,7 @@ export namespace Prisma {
     uploadDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
     reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    laporanKegiatan?: LaporanKegiatanUncheckedUpdateOneWithoutSubmissionNestedInput
   }
 
   export type UploadedDocumentCreateManyInput = {
@@ -4846,15 +4974,17 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutLaporanKegiatanInput
+    submission?: UploadedDocumentCreateNestedOneWithoutLaporanKegiatanInput
   }
 
   export type LaporanKegiatanUncheckedCreateInput = {
     id?: number
-    userId: number
     deskripsi: string
     fotoKegiatanUrl: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    userId: number
+    submissionId?: number | null
   }
 
   export type LaporanKegiatanUpdateInput = {
@@ -4863,24 +4993,27 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutLaporanKegiatanNestedInput
+    submission?: UploadedDocumentUpdateOneWithoutLaporanKegiatanNestedInput
   }
 
   export type LaporanKegiatanUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
     deskripsi?: StringFieldUpdateOperationsInput | string
     fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: IntFieldUpdateOperationsInput | number
+    submissionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type LaporanKegiatanCreateManyInput = {
     id?: number
-    userId: number
     deskripsi: string
     fotoKegiatanUrl: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    userId: number
+    submissionId?: number | null
   }
 
   export type LaporanKegiatanUpdateManyMutationInput = {
@@ -4892,11 +5025,12 @@ export namespace Prisma {
 
   export type LaporanKegiatanUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
     deskripsi?: StringFieldUpdateOperationsInput | string
     fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: IntFieldUpdateOperationsInput | number
+    submissionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -5020,6 +5154,11 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type LaporanKegiatanNullableScalarRelationFilter = {
+    is?: LaporanKegiatanWhereInput | null
+    isNot?: LaporanKegiatanWhereInput | null
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -5099,46 +5238,83 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
   }
 
+  export type UploadedDocumentNullableScalarRelationFilter = {
+    is?: UploadedDocumentWhereInput | null
+    isNot?: UploadedDocumentWhereInput | null
+  }
+
   export type LaporanKegiatanCountOrderByAggregateInput = {
     id?: SortOrder
-    userId?: SortOrder
     deskripsi?: SortOrder
     fotoKegiatanUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    userId?: SortOrder
+    submissionId?: SortOrder
   }
 
   export type LaporanKegiatanAvgOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    submissionId?: SortOrder
   }
 
   export type LaporanKegiatanMaxOrderByAggregateInput = {
     id?: SortOrder
-    userId?: SortOrder
     deskripsi?: SortOrder
     fotoKegiatanUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    userId?: SortOrder
+    submissionId?: SortOrder
   }
 
   export type LaporanKegiatanMinOrderByAggregateInput = {
     id?: SortOrder
-    userId?: SortOrder
     deskripsi?: SortOrder
     fotoKegiatanUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    userId?: SortOrder
+    submissionId?: SortOrder
   }
 
   export type LaporanKegiatanSumOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    submissionId?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type LaporanKegiatanCreateNestedManyWithoutUserInput = {
@@ -5195,6 +5371,18 @@ export namespace Prisma {
     deleteMany?: LaporanKegiatanScalarWhereInput | LaporanKegiatanScalarWhereInput[]
   }
 
+  export type LaporanKegiatanCreateNestedOneWithoutSubmissionInput = {
+    create?: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+    connectOrCreate?: LaporanKegiatanCreateOrConnectWithoutSubmissionInput
+    connect?: LaporanKegiatanWhereUniqueInput
+  }
+
+  export type LaporanKegiatanUncheckedCreateNestedOneWithoutSubmissionInput = {
+    create?: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+    connectOrCreate?: LaporanKegiatanCreateOrConnectWithoutSubmissionInput
+    connect?: LaporanKegiatanWhereUniqueInput
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -5203,10 +5391,36 @@ export namespace Prisma {
     set?: Date | string | null
   }
 
+  export type LaporanKegiatanUpdateOneWithoutSubmissionNestedInput = {
+    create?: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+    connectOrCreate?: LaporanKegiatanCreateOrConnectWithoutSubmissionInput
+    upsert?: LaporanKegiatanUpsertWithoutSubmissionInput
+    disconnect?: LaporanKegiatanWhereInput | boolean
+    delete?: LaporanKegiatanWhereInput | boolean
+    connect?: LaporanKegiatanWhereUniqueInput
+    update?: XOR<XOR<LaporanKegiatanUpdateToOneWithWhereWithoutSubmissionInput, LaporanKegiatanUpdateWithoutSubmissionInput>, LaporanKegiatanUncheckedUpdateWithoutSubmissionInput>
+  }
+
+  export type LaporanKegiatanUncheckedUpdateOneWithoutSubmissionNestedInput = {
+    create?: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+    connectOrCreate?: LaporanKegiatanCreateOrConnectWithoutSubmissionInput
+    upsert?: LaporanKegiatanUpsertWithoutSubmissionInput
+    disconnect?: LaporanKegiatanWhereInput | boolean
+    delete?: LaporanKegiatanWhereInput | boolean
+    connect?: LaporanKegiatanWhereUniqueInput
+    update?: XOR<XOR<LaporanKegiatanUpdateToOneWithWhereWithoutSubmissionInput, LaporanKegiatanUpdateWithoutSubmissionInput>, LaporanKegiatanUncheckedUpdateWithoutSubmissionInput>
+  }
+
   export type UserCreateNestedOneWithoutLaporanKegiatanInput = {
     create?: XOR<UserCreateWithoutLaporanKegiatanInput, UserUncheckedCreateWithoutLaporanKegiatanInput>
     connectOrCreate?: UserCreateOrConnectWithoutLaporanKegiatanInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type UploadedDocumentCreateNestedOneWithoutLaporanKegiatanInput = {
+    create?: XOR<UploadedDocumentCreateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedCreateWithoutLaporanKegiatanInput>
+    connectOrCreate?: UploadedDocumentCreateOrConnectWithoutLaporanKegiatanInput
+    connect?: UploadedDocumentWhereUniqueInput
   }
 
   export type UserUpdateOneRequiredWithoutLaporanKegiatanNestedInput = {
@@ -5215,6 +5429,24 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutLaporanKegiatanInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutLaporanKegiatanInput, UserUpdateWithoutLaporanKegiatanInput>, UserUncheckedUpdateWithoutLaporanKegiatanInput>
+  }
+
+  export type UploadedDocumentUpdateOneWithoutLaporanKegiatanNestedInput = {
+    create?: XOR<UploadedDocumentCreateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedCreateWithoutLaporanKegiatanInput>
+    connectOrCreate?: UploadedDocumentCreateOrConnectWithoutLaporanKegiatanInput
+    upsert?: UploadedDocumentUpsertWithoutLaporanKegiatanInput
+    disconnect?: UploadedDocumentWhereInput | boolean
+    delete?: UploadedDocumentWhereInput | boolean
+    connect?: UploadedDocumentWhereUniqueInput
+    update?: XOR<XOR<UploadedDocumentUpdateToOneWithWhereWithoutLaporanKegiatanInput, UploadedDocumentUpdateWithoutLaporanKegiatanInput>, UploadedDocumentUncheckedUpdateWithoutLaporanKegiatanInput>
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -5347,11 +5579,39 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type LaporanKegiatanCreateWithoutUserInput = {
     deskripsi: string
     fotoKegiatanUrl: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    submission?: UploadedDocumentCreateNestedOneWithoutLaporanKegiatanInput
   }
 
   export type LaporanKegiatanUncheckedCreateWithoutUserInput = {
@@ -5360,6 +5620,7 @@ export namespace Prisma {
     fotoKegiatanUrl: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    submissionId?: number | null
   }
 
   export type LaporanKegiatanCreateOrConnectWithoutUserInput = {
@@ -5393,11 +5654,62 @@ export namespace Prisma {
     OR?: LaporanKegiatanScalarWhereInput[]
     NOT?: LaporanKegiatanScalarWhereInput | LaporanKegiatanScalarWhereInput[]
     id?: IntFilter<"LaporanKegiatan"> | number
-    userId?: IntFilter<"LaporanKegiatan"> | number
     deskripsi?: StringFilter<"LaporanKegiatan"> | string
     fotoKegiatanUrl?: StringFilter<"LaporanKegiatan"> | string
     createdAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
     updatedAt?: DateTimeFilter<"LaporanKegiatan"> | Date | string
+    userId?: IntFilter<"LaporanKegiatan"> | number
+    submissionId?: IntNullableFilter<"LaporanKegiatan"> | number | null
+  }
+
+  export type LaporanKegiatanCreateWithoutSubmissionInput = {
+    deskripsi: string
+    fotoKegiatanUrl: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutLaporanKegiatanInput
+  }
+
+  export type LaporanKegiatanUncheckedCreateWithoutSubmissionInput = {
+    id?: number
+    deskripsi: string
+    fotoKegiatanUrl: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: number
+  }
+
+  export type LaporanKegiatanCreateOrConnectWithoutSubmissionInput = {
+    where: LaporanKegiatanWhereUniqueInput
+    create: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+  }
+
+  export type LaporanKegiatanUpsertWithoutSubmissionInput = {
+    update: XOR<LaporanKegiatanUpdateWithoutSubmissionInput, LaporanKegiatanUncheckedUpdateWithoutSubmissionInput>
+    create: XOR<LaporanKegiatanCreateWithoutSubmissionInput, LaporanKegiatanUncheckedCreateWithoutSubmissionInput>
+    where?: LaporanKegiatanWhereInput
+  }
+
+  export type LaporanKegiatanUpdateToOneWithWhereWithoutSubmissionInput = {
+    where?: LaporanKegiatanWhereInput
+    data: XOR<LaporanKegiatanUpdateWithoutSubmissionInput, LaporanKegiatanUncheckedUpdateWithoutSubmissionInput>
+  }
+
+  export type LaporanKegiatanUpdateWithoutSubmissionInput = {
+    deskripsi?: StringFieldUpdateOperationsInput | string
+    fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutLaporanKegiatanNestedInput
+  }
+
+  export type LaporanKegiatanUncheckedUpdateWithoutSubmissionInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    deskripsi?: StringFieldUpdateOperationsInput | string
+    fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: IntFieldUpdateOperationsInput | number
   }
 
   export type UserCreateWithoutLaporanKegiatanInput = {
@@ -5416,6 +5728,34 @@ export namespace Prisma {
   export type UserCreateOrConnectWithoutLaporanKegiatanInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutLaporanKegiatanInput, UserUncheckedCreateWithoutLaporanKegiatanInput>
+  }
+
+  export type UploadedDocumentCreateWithoutLaporanKegiatanInput = {
+    namaPengirim: string
+    fileName: string
+    filePath: string
+    fileMimeType: string
+    fileSize: number
+    uploadDate?: Date | string
+    status?: string
+    reviewedAt?: Date | string | null
+  }
+
+  export type UploadedDocumentUncheckedCreateWithoutLaporanKegiatanInput = {
+    id?: number
+    namaPengirim: string
+    fileName: string
+    filePath: string
+    fileMimeType: string
+    fileSize: number
+    uploadDate?: Date | string
+    status?: string
+    reviewedAt?: Date | string | null
+  }
+
+  export type UploadedDocumentCreateOrConnectWithoutLaporanKegiatanInput = {
+    where: UploadedDocumentWhereUniqueInput
+    create: XOR<UploadedDocumentCreateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedCreateWithoutLaporanKegiatanInput>
   }
 
   export type UserUpsertWithoutLaporanKegiatanInput = {
@@ -5442,12 +5782,47 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
   }
 
+  export type UploadedDocumentUpsertWithoutLaporanKegiatanInput = {
+    update: XOR<UploadedDocumentUpdateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedUpdateWithoutLaporanKegiatanInput>
+    create: XOR<UploadedDocumentCreateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedCreateWithoutLaporanKegiatanInput>
+    where?: UploadedDocumentWhereInput
+  }
+
+  export type UploadedDocumentUpdateToOneWithWhereWithoutLaporanKegiatanInput = {
+    where?: UploadedDocumentWhereInput
+    data: XOR<UploadedDocumentUpdateWithoutLaporanKegiatanInput, UploadedDocumentUncheckedUpdateWithoutLaporanKegiatanInput>
+  }
+
+  export type UploadedDocumentUpdateWithoutLaporanKegiatanInput = {
+    namaPengirim?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    filePath?: StringFieldUpdateOperationsInput | string
+    fileMimeType?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    uploadDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type UploadedDocumentUncheckedUpdateWithoutLaporanKegiatanInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    namaPengirim?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    filePath?: StringFieldUpdateOperationsInput | string
+    fileMimeType?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    uploadDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type LaporanKegiatanCreateManyUserInput = {
     id?: number
     deskripsi: string
     fotoKegiatanUrl: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    submissionId?: number | null
   }
 
   export type LaporanKegiatanUpdateWithoutUserInput = {
@@ -5455,6 +5830,7 @@ export namespace Prisma {
     fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submission?: UploadedDocumentUpdateOneWithoutLaporanKegiatanNestedInput
   }
 
   export type LaporanKegiatanUncheckedUpdateWithoutUserInput = {
@@ -5463,6 +5839,7 @@ export namespace Prisma {
     fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submissionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type LaporanKegiatanUncheckedUpdateManyWithoutUserInput = {
@@ -5471,6 +5848,7 @@ export namespace Prisma {
     fotoKegiatanUrl?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submissionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
 
