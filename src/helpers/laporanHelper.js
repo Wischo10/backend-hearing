@@ -1,105 +1,97 @@
 // src/helpers/laporanHelper.js
 
-const { PrismaClient } = require('../generated/prisma'); // Pastikan path ini benar
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const fs = require('fs');
 const path = require('path');
-const { uploadDir } = require('./uploadHelper'); // Import uploadDir dari uploadHelper untuk path foto
+const multer = require('multer');
 
-// --- Fungsi Validasi ---
+const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 
-/**
- * Memvalidasi apakah ID yang diberikan adalah integer positif.
- * @param {string | number} id - ID yang akan divalidasi.
- * @returns {number | null} ID yang valid (integer) atau null jika tidak valid.
- */
-const validateId = (id) => { // <--- Pastikan nama fungsi ini adalah 'validateId'
-    const parsedId = parseInt(id, 10);
-    if (isNaN(parsedId) || parsedId <= 0) {
-        return null;
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Middleware untuk Upload Foto Kegiatan
+const imageFileFilter = (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Format file tidak didukung. Hanya file gambar (JPEG, PNG, GIF, WEBP) yang diizinkan.'), false);
     }
-    return parsedId;
 };
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+        const timestamp = Date.now();
+        const ext = path.extname(file.originalname);
+        cb(null, `fotoKegiatan-${timestamp}${ext}`);
+    }
+});
 
-/**
- * Memvalidasi input untuk membuat atau memperbarui laporan kegiatan.
- * @param {string} deskripsi - Deskripsi kegiatan.
- * @param {string} fotoKegiatanPath - Path atau URL foto kegiatan.
- * @returns {object} Objek { status: boolean, message: string }
- */
-const validateLaporanInput = (deskripsi, fotoKegiatanPath) => {
-    if (!deskripsi || deskripsi.trim() === '') {
-        return { status: false, message: 'Deskripsi kegiatan tidak boleh kosong.' };
-    }
-    // Perbaikan: Foto kegiatan bisa opsional saat update.
-    // Jika fotoKegiatanPath tidak ada (saat update), dan deskripsi ada, itu valid.
-    // Jika ini untuk create, maka fotoKegiatanPath harus ada.
-    // Validasi ini lebih baik disesuaikan per handler jika ada perbedaan aturan.
-    // Untuk saat ini, asumsikan foto selalu wajib untuk create, dan opsional untuk update jika fotoKegiatanPath null.
-    if (!fotoKegiatanPath || fotoKegiatanPath.trim() === '') {
-        return { status: false, message: 'Foto kegiatan harus diupload.' };
-    }
-    return { status: true, message: 'Input valid.' };
+const uploadFotoKegiatanMiddleware = multer({
+    storage: storage,
+    fileFilter: imageFileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }
+}).single('fotoKegiatan');
+
+// Fungsi Bantuan
+const getFileUrl = (req, filename) => {
+    if (!filename) return null;
+    return `${req.protocol}://${req.get('host')}/uploads/${filename}`;
 };
 
-// --- Fungsi Interaksi Database (Prisma) ---
+const deleteExistingPhoto = (fileUrl) => {
+    if (!fileUrl) return;
+    try {
+        const fileName = path.basename(new URL(fileUrl).pathname);
+        const filePath = path.join(uploadDir, fileName);
+        if (fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+                if (err) console.error(`Gagal menghapus file foto lama: ${filePath}`, err);
+            });
+        }
+    } catch (error) {
+        console.error(`URL tidak valid, tidak dapat menghapus file: ${fileUrl}`, error);
+    }
+};
 
-/**
- * Membuat laporan kegiatan baru di database.
- * @param {number} userId - ID pengguna yang membuat laporan.
- * @param {string} deskripsi - Deskripsi kegiatan.
- * @param {string} fotoKegiatanUrl - URL/path foto kegiatan.
- * @returns {Promise<object>} Objek laporan kegiatan yang dibuat.
- */
-const createLaporan = async (userId, deskripsi, fotoKegiatanUrl) => {
+// --- FUNGSI INTERAKSI DATABASE ---
+
+// PERBAIKAN: Menerima satu objek `data` agar lebih rapi.
+const createLaporan = async (data) => {
     return await prisma.laporanKegiatan.create({
-        data: {
-            userId,
-            deskripsi,
-            fotoKegiatanUrl,
-        },
+        data: data,
     });
 };
 
-/**
- * Mendapatkan semua laporan kegiatan, opsional berdasarkan userId.
- * @param {number} [userId] - ID pengguna (opsional).
- * @returns {Promise<Array>} Array berisi objek laporan kegiatan.
- */
+// PERBAIKAN: Menyertakan data `submission` dan `user` yang terkait.
 const getAllLaporan = async (userId = null) => {
     const whereClause = userId ? { userId: userId } : {};
     return await prisma.laporanKegiatan.findMany({
         where: whereClause,
-        include: { user: { select: { id: true, username: true, email: true } } }, // Inklusi data user
-        orderBy: {
-            createdAt: 'desc',
+        include: {
+            user: { select: { id: true, username: true, email: true } },
+            submission: true // Ambil semua data dari submission yang terhubung
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
+// PERBAIKAN: Menyertakan data `submission` dan `user` yang terkait.
+const getLaporanById = async (laporanId) => {
+    return await prisma.laporanKegiatan.findUnique({
+        where: { id: laporanId },
+        include: {
+            user: { select: { id: true, username: true, email: true } },
+            submission: true
         },
     });
 };
 
-/**
- * Mendapatkan laporan kegiatan berdasarkan ID.
- * @param {number} laporanId - ID laporan.
- * @returns {Promise<object | null>} Objek laporan kegiatan atau null jika tidak ditemukan.
- */
-const getLaporanById = async (laporanId) => {
-    return await prisma.laporanKegiatan.findUnique({
-        where: { id: laporanId },
-        include: { user: { select: { id: true, username: true, email: true } } },
-    });
-};
-
-/**
- * Memperbarui laporan kegiatan yang sudah ada.
- * @param {number} laporanId - ID laporan yang akan diperbarui.
- * @param {number} userId - ID pengguna yang memperbarui (untuk otorisasi).
- * @param {string} deskripsi - Deskripsi baru.
- * @param {string} [fotoKegiatanUrl] - URL/path foto baru (opsional).
- * @returns {Promise<object>} Objek laporan kegiatan yang diperbarui.
- * @throws {Error} Jika laporan tidak ditemukan atau pengguna tidak berhak memperbarui.
- */
-const updateLaporan = async (laporanId, userId, deskripsi, fotoKegiatanUrl = null) => {
+// PERBAIKAN: Menerima `laporanId` dan satu objek `data` untuk pembaruan.
+const updateLaporan = async (laporanId, data) => {
     const existingLaporan = await prisma.laporanKegiatan.findUnique({
         where: { id: laporanId },
     });
@@ -107,37 +99,25 @@ const updateLaporan = async (laporanId, userId, deskripsi, fotoKegiatanUrl = nul
     if (!existingLaporan) {
         throw new Error('Laporan tidak ditemukan.');
     }
-
-    if (existingLaporan.userId !== userId) {
+    if (existingLaporan.userId !== data.userId) {
         throw new Error('Anda tidak memiliki izin untuk memperbarui laporan ini.');
     }
 
-    // Jika ada foto baru, hapus foto lama (opsional tapi disarankan)
-    if (fotoKegiatanUrl && existingLaporan.fotoKegiatanUrl) {
-        const oldFilePath = path.join(uploadDir, path.basename(existingLaporan.fotoKegiatanUrl));
-        if (fs.existsSync(oldFilePath)) {
-            fs.unlink(oldFilePath, (err) => {
-                if (err) console.error('Error deleting old report photo:', oldFilePath, err);
-            });
-        }
+    // Jika ada foto baru, hapus foto lama.
+    if (data.fotoKegiatanUrl && existingLaporan.fotoKegiatanUrl) {
+        deleteExistingPhoto(existingLaporan.fotoKegiatanUrl);
     }
 
     return await prisma.laporanKegiatan.update({
         where: { id: laporanId },
         data: {
-            deskripsi,
-            fotoKegiatanUrl: fotoKegiatanUrl || existingLaporan.fotoKegiatanUrl, // Gunakan yang baru atau yang lama
+            deskripsi: data.deskripsi,
+            // Gunakan foto baru jika ada, jika tidak, pertahankan yang lama.
+            fotoKegiatanUrl: data.fotoKegiatanUrl || existingLaporan.fotoKegiatanUrl,
         },
     });
 };
 
-/**
- * Menghapus laporan kegiatan.
- * @param {number} laporanId - ID laporan yang akan dihapus.
- * @param {number} userId - ID pengguna yang menghapus (untuk otorisasi).
- * @returns {Promise<object>} Objek laporan yang dihapus.
- * @throws {Error} Jika laporan tidak ditemukan atau pengguna tidak berhak menghapus.
- */
 const deleteLaporan = async (laporanId, userId) => {
     const existingLaporan = await prisma.laporanKegiatan.findUnique({
         where: { id: laporanId },
@@ -146,29 +126,28 @@ const deleteLaporan = async (laporanId, userId) => {
     if (!existingLaporan) {
         throw new Error('Laporan tidak ditemukan.');
     }
-
     if (existingLaporan.userId !== userId) {
         throw new Error('Anda tidak memiliki izin untuk menghapus laporan ini.');
     }
 
-    // Hapus file foto terkait (opsional tapi disarankan)
-    if (existingLaporan.fotoKegiatanUrl) {
-        const filePathToRemove = path.join(uploadDir, path.basename(existingLaporan.fotoKegiatanUrl));
-        if (fs.existsSync(filePathToRemove)) {
-            fs.unlink(filePathToRemove, (err) => {
-                if (err) console.error('Error deleting report photo during delete:', filePathToRemove, err);
-            });
-        }
-    }
+    deleteExistingPhoto(existingLaporan.fotoKegiatanUrl);
 
     return await prisma.laporanKegiatan.delete({
         where: { id: laporanId },
     });
 };
 
+// Fungsi Validasi ID
+const validateId = (id) => {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId) || parsedId <= 0) return null;
+    return parsedId;
+};
+
 module.exports = {
-    validateLaporanInput,
-    validateId, // <--- TAMBAHKAN validateId ke exports
+    uploadFotoKegiatanMiddleware,
+    getFileUrl,
+    validateId,
     createLaporan,
     getAllLaporan,
     getLaporanById,

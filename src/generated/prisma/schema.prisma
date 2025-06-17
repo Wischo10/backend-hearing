@@ -1,47 +1,33 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma" // Lokasi output Prisma Client Anda
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Model User sesuai dengan kebutuhan autentikasi
+// Model User untuk autentikasi dan relasi
 model User {
   id       Int    @id @default(autoincrement())
-  username String @unique // Tambahkan username dan pastikan unik
-  email    String @unique // Email harus unik
-  password String // Password yang di-hash
-  // Anda bisa menambahkan field lain di sini jika diperlukan,
-  // seperti createdAt, updatedAt, role, dll.
+  username String @unique
+  email    String @unique
+  password String
 
-  // Contoh relasi jika Anda memiliki model lain seperti Post
-  // posts     Post[]
+  // Relasi: Satu User bisa membuat banyak LaporanKegiatan
+  laporanKegiatan LaporanKegiatan[]
 
-  // --- TAMBAHKAN INI UNTUK RELASI DENGAN LaporanKegiatan ---
-  laporanKegiatan LaporanKegiatan[] // Menunjukkan bahwa satu User bisa memiliki banyak LaporanKegiatan
-  // --------------------------------------------------------
+  // --- PERBAIKAN: Relasi ke RefreshToken ---
+  // Menunjukkan bahwa satu User bisa memiliki banyak refresh token
+  refreshTokens RefreshToken[]
 }
 
-// Contoh model Post (jika Anda memilikinya, seperti di contoh Anda)
-// model Post {
-//   id        Int      @id @default(autoincrement())
-//   title     String
-//   content   String?
-//   published Boolean  @default(false)
-//   author    User     @relation(fields: [authorId], references: [id])
-//   authorId  Int
-// }
-
-// Model untuk menyimpan informasi dokumen yang diupload
+// Model untuk menyimpan informasi dokumen submission
 model UploadedDocument {
   id           Int       @id @default(autoincrement())
   namaPengirim String
@@ -50,24 +36,47 @@ model UploadedDocument {
   fileMimeType String
   fileSize     Int
   uploadDate   DateTime  @default(now())
-  status       String    @default("PENDING") // Atau gunakan Enum
-  reviewedAt   DateTime? // <--- TAMBAHKAN INI. Gunakan '?' untuk membuatnya opsional/nullable.
+  status       String    @default("PENDING")
+  reviewedAt   DateTime?
+
+  laporanKegiatan LaporanKegiatan? @relation("SubmissionLaporan")
 
   @@map("uploaded_documents")
 }
 
+// Model untuk menyimpan laporan kegiatan
 model LaporanKegiatan {
   id              Int      @id @default(autoincrement())
-  userId          Int // ID pengguna yang membuat laporan
-  user            User     @relation(fields: [userId], references: [id])
-  deskripsi       String   @db.Text // Deskripsi kegiatan, gunakan @db.Text untuk teks panjang
-  fotoKegiatanUrl String // URL/path foto kegiatan yang diupload
+  deskripsi       String   @db.Text
+  fotoKegiatanUrl String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  @@map("laporan_kegiatan") // Nama tabel di database
+  // Relasi ke User yang membuat laporan
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  // Relasi ke Submission
+  submissionId Int?              @unique
+  submission   UploadedDocument? @relation("SubmissionLaporan", fields: [submissionId], references: [id])
+
+  @@map("laporan_kegiatan")
 }
 
+// --- BAGIAN BARU: Model untuk Refresh Token ---
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// ------------------------------------------
+
+// Enum untuk role pengguna, bisa dikembangkan lebih lanjut
 enum Role {
   ADMIN
 }

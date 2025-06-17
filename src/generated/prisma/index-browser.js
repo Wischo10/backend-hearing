@@ -141,11 +141,19 @@ exports.Prisma.UploadedDocumentScalarFieldEnum = {
 
 exports.Prisma.LaporanKegiatanScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
   deskripsi: 'deskripsi',
   fotoKegiatanUrl: 'fotoKegiatanUrl',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  userId: 'userId',
+  submissionId: 'submissionId'
+};
+
+exports.Prisma.RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  userId: 'userId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -167,7 +175,8 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   UploadedDocument: 'UploadedDocument',
-  LaporanKegiatan: 'LaporanKegiatan'
+  LaporanKegiatan: 'LaporanKegiatan',
+  RefreshToken: 'RefreshToken'
 };
 
 /**
