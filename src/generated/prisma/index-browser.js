@@ -149,6 +149,13 @@ exports.Prisma.LaporanKegiatanScalarFieldEnum = {
   submissionId: 'submissionId'
 };
 
+exports.Prisma.RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  userId: 'userId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -168,7 +175,8 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   UploadedDocument: 'UploadedDocument',
-  LaporanKegiatan: 'LaporanKegiatan'
+  LaporanKegiatan: 'LaporanKegiatan',
+  RefreshToken: 'RefreshToken'
 };
 
 /**

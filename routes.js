@@ -24,7 +24,7 @@ const {
 } = require('./src/handlers/submissionHandler');
 
 const {
-    createLaporanHandler,
+     createLaporanFromSubmissionHandler,
     getAllLaporanHandler,
     getLaporanByIdHandler,
     updateLaporanHandler,
@@ -52,10 +52,7 @@ router.post('/logout', logoutHandler);
 router.post('/refresh', authenticateJWT(true), refreshHandler);
 
 
-// // --- Rute Pengajuan Surat (Submission) ---
-// // Rute ini khusus untuk mengupload surat dan membuat data submission
-// // PERBAIKAN: Gunakan middleware upload yang spesifik untuk surat
-// router.post('/submissions', authenticateJWT(), uploadSuratMiddleware, uploadHandler.handleUpload);
+router.post('/upload', authenticateJWT(), uploadSuratMiddleware, uploadHandler.handleUpload);
 
 // Mendapatkan semua data submission
 router.get('/submissions', authenticateJWT(), getSubmissions);
@@ -71,7 +68,7 @@ router.get('/submissions/files/:fileName', serveUploadedFile);
 // --- Rute Laporan Kegiatan ---
 // PERBAIKAN: Terapkan middleware upload foto langsung di rute pembuatan laporan
 // Alur: Autentikasi -> Upload Foto -> Jalankan Handler untuk simpan ke DB
-router.post('/laporan', authenticateJWT(), uploadFotoKegiatanMiddleware, createLaporanHandler);
+router.post('/laporan', authenticateJWT(), uploadFotoKegiatanMiddleware,  createLaporanFromSubmissionHandler);
 
 // Mendapatkan semua laporan
 router.get('/laporan', authenticateJWT(), getAllLaporanHandler);

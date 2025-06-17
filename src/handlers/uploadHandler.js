@@ -1,84 +1,68 @@
 // src/handlers/uploadHandler.js
 
-// 1. Impor `uploadSuratMiddleware` (nama yang benar) dan `getFileUrl`
-const { uploadSuratMiddleware, getFileUrl } = require('../helpers/uploadHelper');
-// Pastikan path ke Prisma Client Anda sudah benar
-const { PrismaClient } = require('../generated/prisma'); // Path standar, sesuaikan jika perlu
+// Impor helper yang dibutuhkan
+const { getFileUrl } = require('../helpers/uploadHelper');
+const prisma = require('../lib/prisma');
 const fs = require('fs');
-const multer = require('multer');
 
-const prisma = new PrismaClient();
-
-exports.handleUpload = (req, res) => {
-  // 2. Gunakan middleware dengan nama yang benar: `uploadSuratMiddleware`
-  uploadSuratMiddleware(req, res, async function (err) {
-    // Penanganan error dari Multer
-    if (err instanceof multer.MulterError) {
-      console.error('Multer error:', err);
-      return res.status(400).json({ success: false, message: `Error Multer: ${err.message}` });
-    } else if (err) {
-      // Penanganan error kustom (misal: format file tidak didukung)
-      console.error('Error during file upload:', err);
-      return res.status(400).json({ success: false, message: err.message });
+/**
+ * Fungsi bantuan untuk menghapus file jika terjadi error.
+ * @param {object} file - Objek file dari req.file.
+ */
+const cleanupFileOnError = (file) => {
+    if (file && file.path) {
+        fs.unlink(file.path, (err) => {
+            if (err) console.error("Gagal menghapus file setelah terjadi error:", file.path, err);
+        });
     }
+};
 
-    // Validasi jika tidak ada file yang diunggah
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Tidak ada file surat yang diupload.' });
-    }
-
-    // Ambil data dari body dan file
-    const { nama } = req.body;
-    const filePath = req.file.path; // Path lokal untuk menghapus jika terjadi error
-
-    // Validasi field 'nama'
-    if (!nama) {
-      // Hapus file yang sudah terlanjur diunggah jika data tidak valid
-      fs.unlink(filePath, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting orphaned file:', unlinkErr);
-      });
-      return res.status(400).json({ success: false, message: 'Field "nama" tidak boleh kosong.' });
-    }
-
+/**
+ * Handler untuk membuat data submission setelah file diupload.
+ * Middleware `uploadSuratMiddleware` sudah dijalankan oleh routes.js.
+ */
+exports.handleUpload = async (req, res) => {
     try {
-      // 3. Buat URL lengkap yang bisa diakses publik
-      const fileUrl = getFileUrl(req, req.file.filename);
-
-      // 4. Simpan URL (bukan path lokal) ke database
-      const newDocument = await prisma.uploadedDocument.create({
-        data: {
-          namaPengirim: nama,
-          fileName: req.file.originalname,
-          filePath: fileUrl, // Simpan URL publik
-          fileMimeType: req.file.mimetype,
-          fileSize: req.file.size
+        // 1. Validasi: Pastikan file sudah diupload oleh middleware
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Tidak ada file surat yang diupload.' });
         }
-      });
 
-      console.log(`File '${req.file.originalname}' diupload oleh ${nama}. URL: ${fileUrl}`);
-      console.log('Informasi dokumen disimpan ke database:', newDocument);
+        const { nama } = req.body;
 
-      // 5. Kirim respons sukses dengan URL file
-      res.status(200).json({
-        success: true,
-        message: 'Surat berhasil diupload dan informasi disimpan!',
-        data: {
-          id: newDocument.id,
-          nama: newDocument.namaPengirim,
-          fileName: newDocument.fileName,
-          fileUrl: newDocument.filePath, // Kirim URL ke frontend
-          fileMimeType: newDocument.fileMimeType,
-          fileSize: newDocument.fileSize,
-          uploadDate: newDocument.uploadDate
+        // 2. Validasi: Pastikan field 'nama' tidak kosong
+        if (!nama || nama.trim() === '') {
+            cleanupFileOnError(req.file); // Hapus file jika data tidak valid
+            return res.status(400).json({ success: false, message: 'Field "nama" tidak boleh kosong.' });
         }
-      });
+
+        // 3. Buat URL publik dan siapkan data
+        const fileUrl = getFileUrl(req, req.file.filename);
+        const documentData = {
+            namaPengirim: nama,
+            fileName: req.file.originalname,
+            filePath: fileUrl, // Simpan URL, bukan path lokal
+            fileMimeType: req.file.mimetype,
+            fileSize: req.file.size
+        };
+
+        // 4. Simpan informasi ke database
+        const newDocument = await prisma.uploadedDocument.create({
+            data: documentData
+        });
+
+        // console.log(`File '${req.file.originalname}' diupload oleh ${nama}. URL: ${fileUrl}`);
+
+        // 5. Kirim respons sukses
+        return res.status(201).json({
+            success: true,
+            message: 'Surat berhasil diupload dan informasi disimpan!',
+            data: newDocument
+        });
+
     } catch (dbError) {
-      // Hapus file jika terjadi error saat menyimpan ke database
-      fs.unlink(filePath, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting file after DB error:', unlinkErr);
-      });
-      console.error('Error saving document info to database:', dbError);
-      res.status(500).json({ success: false, message: 'Terjadi kesalahan saat menyimpan informasi dokumen.' });
+        cleanupFileOnError(req.file); // Hapus file jika ada error database
+        console.error('Error saat menyimpan info dokumen:', dbError);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan saat menyimpan informasi dokumen.' });
     }
-  });
 };

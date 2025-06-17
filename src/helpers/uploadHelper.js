@@ -1,5 +1,5 @@
 // src/helpers/uploadHelper.js
-
+const prisma = require('../lib/prisma');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');

@@ -3,16 +3,11 @@
 // Mengimpor library yang dibutuhkan
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const prisma = require('../lib/prisma');
 require('dotenv').config();
 
 // =================================================================
-// IMPORTS & SETUP
-// =================================================================
-// PERBAIKAN: Impor instance Prisma tunggal dari file terpusat.
-const prisma = require('../lib/prisma');
-
-// =================================================================
-// FUNGSI DATABASE
+// FUNGSI DATABASE PENGGUNA
 // =================================================================
 const getUserByUsername = async (username) => {
     return prisma.user.findUnique({ where: { username } });
@@ -31,6 +26,35 @@ const getUserById = async (id) => {
     if (!id) return null;
     return prisma.user.findUnique({ where: { id } });
 };
+
+// =================================================================
+// --- BAGIAN BARU: FUNGSI UNTUK MENGELOLA REFRESH TOKEN DI DB ---
+// =================================================================
+const saveRefreshToken = async (userId, token) => {
+    return prisma.refreshToken.create({
+        data: { userId, token },
+    });
+};
+
+const deleteRefreshToken = async (token) => {
+    try {
+        await prisma.refreshToken.delete({
+            where: { token },
+        });
+    } catch (error) {
+        // Abaikan error jika token sudah tidak ada (misalnya sudah dihapus)
+        if (error.code !== 'P2025') {
+            console.error("Gagal menghapus refresh token:", error);
+        }
+    }
+};
+
+const findRefreshToken = async (token) => {
+    return prisma.refreshToken.findUnique({
+        where: { token },
+    });
+};
+
 
 // =================================================================
 // FUNGSI VERIFIKASI
@@ -137,4 +161,8 @@ module.exports = {
     createUser,
     getUserById,
     authenticateJWT,
+    // --- TAMBAHKAN FUNGSI BARU INI KE EKSPOR ---
+    saveRefreshToken,
+    deleteRefreshToken,
+    findRefreshToken,
 };

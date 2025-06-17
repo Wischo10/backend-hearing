@@ -21,6 +21,10 @@ model User {
 
   // Relasi: Satu User bisa membuat banyak LaporanKegiatan
   laporanKegiatan LaporanKegiatan[]
+
+  // --- PERBAIKAN: Relasi ke RefreshToken ---
+  // Menunjukkan bahwa satu User bisa memiliki banyak refresh token
+  refreshTokens RefreshToken[]
 }
 
 // Model untuk menyimpan informasi dokumen submission
@@ -35,10 +39,7 @@ model UploadedDocument {
   status       String    @default("PENDING")
   reviewedAt   DateTime?
 
-  // --- PERBAIKAN: Memberi nama eksplisit pada relasi ---
-  // Menunjukkan bahwa satu dokumen submission bisa memiliki satu laporan kegiatan.
   laporanKegiatan LaporanKegiatan? @relation("SubmissionLaporan")
-  // ----------------------------------------------------
 
   @@map("uploaded_documents")
 }
@@ -55,16 +56,25 @@ model LaporanKegiatan {
   userId Int
   user   User @relation(fields: [userId], references: [id])
 
-  // --- PERBAIKAN: Memberi nama eksplisit pada relasi ---
-  // Foreign key yang menghubungkan laporan ke submission.
-  // Opsional (?) karena tidak semua laporan dibuat dari submission.
-  // Unik karena satu submission hanya bisa menghasilkan satu laporan.
+  // Relasi ke Submission
   submissionId Int?              @unique
   submission   UploadedDocument? @relation("SubmissionLaporan", fields: [submissionId], references: [id])
-  // ----------------------------------------------------
 
   @@map("laporan_kegiatan")
 }
+
+// --- BAGIAN BARU: Model untuk Refresh Token ---
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// ------------------------------------------
 
 // Enum untuk role pengguna, bisa dikembangkan lebih lanjut
 enum Role {

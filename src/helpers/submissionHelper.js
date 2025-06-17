@@ -9,7 +9,7 @@ const prisma = require('../lib/prisma');
 const getAllUploadedDocuments = async () => {
     return await prisma.uploadedDocument.findMany({
         orderBy: {
-            uploadDate: 'desc', // Mengurutkan berdasarkan tanggal upload, terbaru dulu
+            uploadDate: 'desc',
         },
     });
 };
@@ -25,10 +25,24 @@ const updateUploadedDocumentStatus = async (id, status) => {
         where: { id },
         data: {
             status,
-            reviewedAt: new Date(), // Tambahkan reviewedAt untuk melacak kapan status diubah
+            reviewedAt: new Date(),
         },
     });
 };
+
+/**
+ * --- FUNGSI BARU: Mencari dokumen berdasarkan ID ---
+ * @param {number} id - ID dokumen.
+ * @returns {Promise<Object | null>} Objek dokumen atau null jika tidak ditemukan.
+ */
+const findUploadedDocumentById = async (id) => {
+    // Memastikan ID adalah angka sebelum melakukan query
+    if (isNaN(id)) return null;
+    return await prisma.uploadedDocument.findUnique({
+        where: { id: id },
+    });
+};
+
 
 /**
  * Memvalidasi ID submission.
@@ -63,4 +77,5 @@ module.exports = {
     updateUploadedDocumentStatus,
     validateSubmissionId,
     validateSubmissionStatus,
+    findUploadedDocumentById, // <-- PERBAIKAN: Fungsi ditambahkan ke ekspor
 };
